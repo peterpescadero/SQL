@@ -1,4 +1,4 @@
---Detailed Enrolled DPP
+--Member Management Report
 SELECT reg.PatientID,
        reg.PolicyID	As 'Medicaid ID',
 	   cast(PEF.dateadded as date)                                           AS
