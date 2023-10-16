@@ -1,28 +1,27 @@
---get pii for ps with makeup date
+/*
+This query if for a member management system. We needed to get a report based on session number of a class. The database does not include the concept of session number. 
+Previously the session number was estimated using the template structure that the class instance was created with. However, when class dates are adjusted and ordering changes the template iinformation  is not usefull.
+In addition to this some sessions are actually makeup days so we needed to check if the makeup question was answered and use the date for the session date to deturm the session number.
+*/
+
+--get program instance item for with makeup date
 with withMakeupDate as(
-	select 
-	
+	select 	
 		pii1.*,
-		--in a program instance if the session type question has makeup date set value to MakeupDate feild fo all itmes in the pii
+		--in a program instance if the session type question has makeup date set value to MakeupDate feild for all itmes in the program instance item
 		(select top 1 value from ProgramInstanceItem pii2 left join CPDataAnswers cpda on cpda.ProgramInstanceItemId=pii2.id where ProgramInstanceId=pi.Id and QuestionId=637 and Value is not null and pii2.ScheduleDateUtc = pii1.scheduledateutc) 
 			as MakeupDate
-	from 
-	
+	from 	
 		ProgramInstanceItem pii1
 		left join ProgramInstance pi on pi.Id=pii1.ProgramInstanceId
 		left join programschedule ps on ps.id=pi.programscheduleid
 		left join ProgramTemplate pt on pt.id=pi.ProgramTemplateId 
 		left join Program p on p.Id=pt.ProgramId
 	where 
-		--if we have have the ps id(cohort) then use that /otherwise get ps id's using sitecode
 		ps.id = 604
-		--ps.id in (select ps.id from ProgramSchedule ps left join ProgramTemplate pt on pt.Id=ps.ProgramTemplateId left join Program p on p.id=pt.ProgramId where sitecode in ('ARC') and p.Name = 'Diabetes Prevention')
-		--i think they want the inactive ones also
-		--and pi.active = 1
 )
-
 ,
---if no makeup date real date is scheddate otherwise makeupdate is real date
+--if no makeup date, real date is scheddate otherwise makeupdate is real date
 withRealDate as(
 	select 
 		*,
@@ -35,7 +34,7 @@ withRealDate as(
 --add session number to pii
 pii_withSessionNumber as(
 	select 
-		--order each pi in pii by real date to get session number using rank 
+		--order each program instance in program instance item by real date to get session number using rank 
 		*,
 		DENSE_RANK() over (partition by ProgramInstanceid order by realDate) as sessionNumber 
 	from withRealDate
