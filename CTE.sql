@@ -1,7 +1,7 @@
 /*
-This query if for a member management system. We needed to get a report based on session number of a class. The database does not include the concept of session number. 
-Previously the session number was estimated using the template structure that the class instance was created with. However, when class dates are adjusted and ordering changes the template iinformation  is not usefull.
-In addition to this some sessions are actually makeup days so we needed to check if the makeup question was answered and use the date for the session date to deturm the session number.
+This query is for a member management system. We needed to get a report based on the session number of a class. The database does not include the concept of session number. 
+Previously the session number was estimated using the template structure that the class instance was created with. However, when class dates are adjusted and ordering changes the template information is not useful.
+In addition to this some sessions are actually makeup days so we needed to check if the makeup question was answered and use the date for the session date to determine the session number.
 */
 
 --get program instance item for with makeup date
