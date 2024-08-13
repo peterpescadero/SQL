@@ -1,6 +1,9 @@
 --Member Management Report
---If I where doing this again I would likely use CTE to reduce some duplication
-SELECT reg.PatientID,
+--This report contains basic member information along with calculated values based on differences in starting and ending assessment answers
+--If I were doing this again I would likely use CTE to reduce some duplication
+
+SELECT 
+	reg.PatientID,
 	reg.PolicyID As 'Medicaid ID',
 	cast(PEF.dateadded as date) AS 'Referral Date',
        	PEF.sitecode AS 'Location',
