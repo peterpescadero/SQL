@@ -119,37 +119,46 @@ SELECT reg.PatientID,
 						ProgramInstanceId = ProgInst.id 
 						and Title like '%A1C%'
 				) is null then 0
-		--otherwise pre enrollment form a1c - session a1c
-		else (
-				--casting start to dec
-				cast(
-					(SELECT Value
-					FROM   cpdataplans cp
-						   INNER JOIN preenrollmentform pre
-								   ON cp.id = pre.careplanid
-							INNER JOIN CPDataAnswers da
-								on	pre.Id = da.PreEnrollmentFormId
+				--otherwise pre enrollment form a1c - session a1c
+				else (
+					--casting start to dec
+					cast(
+						(
+							SELECT 
+								Value
+							FROM   
+								cpdataplans cp
+						   		INNER JOIN preenrollmentform pre ON cp.id = pre.careplanid
+								INNER JOIN CPDataAnswers da on pre.Id = da.PreEnrollmentFormId
 
-					WHERE  pre.source = 'Wellcare'
-						   AND description LIKE '%dpp%'
-						   and QuestionId = 504
-						   and PatientId = reg.PatientID) as decimal
-				)
-				-
-				cast(
-					(select max(value) from ProgramInstanceItem PII left outer join CPDataAnswers cpda on PII.Id = cpda.ProgramInstanceItemId where ProgramInstanceId = PII.Id and Title like '%A1C%')
-					as decimal
+							WHERE  
+								pre.source = 'Wellcare'
+						  		AND description LIKE '%dpp%'
+						   		and QuestionId = 504
+						  		and PatientId = reg.PatientID
+						) as decimal
+					)
+					-
+					cast(
+						(
+							select 
+								max(value) 
+							from 
+								ProgramInstanceItem PII 
+									left outer join CPDataAnswers cpda on PII.Id = cpda.ProgramInstanceItemId 
+							where 
+								ProgramInstanceId = PII.Id 
+								and Title like '%A1C%'
+						) as decimal
 					)
 
-		)
-				
-	end as A1C_Change)
-	as 'A1C Change'
-FROM   preenrollmentform PEF
-       LEFT OUTER JOIN registration reg
-                    ON PEF.patientid = reg.patientid
-       LEFT OUTER JOIN programinstance ProgInst
-                    ON PEF.patientid = ProgInst.patientid
-WHERE  source = 'Wellcare'
+				) end as A1C_Change
+			) as 'A1C Change'
+FROM   
+	preenrollmentform PEF
+       LEFT OUTER JOIN registration reg ON PEF.patientid = reg.patientid
+       LEFT OUTER JOIN programinstance ProgInst ON PEF.patientid = ProgInst.patientid
+WHERE  
+	source = 'Insurance Company 42'
        AND status = 'Enrolled'
        AND careplanid = '108' 
