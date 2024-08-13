@@ -1,4 +1,5 @@
 --Member Management Report
+--If I where doing this again I would likely use CTE to reduce some duplication
 SELECT reg.PatientID,
 	reg.PolicyID As 'Medicaid ID',
 	cast(PEF.dateadded as date) AS 'Referral Date',
@@ -59,32 +60,65 @@ SELECT reg.PatientID,
 						where 
 							ProgramInstanceId = ProgInst.id 
 							and QuestionId = 168 
-							and Value is not null order by ScheduleDateEndTimeUtc asc) 
-					as INT
-					)
+							and Value is not null 
+						order by 
+							ScheduleDateEndTimeUtc asc
+					) as INT
+				)
 				-
 				CAST(
-					(select TOP 1 Value from ProgramInstanceItem PII left outer join CPDataAnswers cpda on PII.Id = cpda.ProgramInstanceItemId where ProgramInstanceId = ProgInst.id and QuestionId = 168 and Value is not null order by ScheduleDateEndTimeUtc desc)
-					as INT
-					)
+					(
+						select 
+							TOP 1 Value 
+						from 
+							ProgramInstanceItem PII 
+							left outer join CPDataAnswers cpda on PII.Id = cpda.ProgramInstanceItemId 
+						where 
+							ProgramInstanceId = ProgInst.id 
+							and QuestionId = 168 
+							and Value is not null 
+						order by 
+							ScheduleDateEndTimeUtc desc
+					) as INT
+				)
 			)
-		/
+			/
 			(
 				CAST(
-					(select TOP 1 Value from ProgramInstanceItem PII left outer join CPDataAnswers cpda on PII.Id = cpda.ProgramInstanceItemId where ProgramInstanceId = ProgInst.id and QuestionId = 168 and Value is not null order by ScheduleDateEndTimeUtc asc) 
+					(
+						select 
+							TOP 1 Value 
+						from 
+							ProgramInstanceItem PII 
+							left outer join CPDataAnswers cpda on PII.Id = cpda.ProgramInstanceItemId 
+						where 
+							ProgramInstanceId = ProgInst.id 
+							and QuestionId = 168 
+							and Value is not null 
+						order by ScheduleDateEndTimeUtc asc
+					) 
 					as DECIMAL
-					)
-			)
-			*100
-	)
+				)
+			)*100
+		)
 	) as 'Weight Loss %'
 	,
 	--start a1c change
 
-	(select
-	case
-		--if no a1c assesment answer set to zero
-		when (select max(value) from ProgramInstanceItem PII left outer join CPDataAnswers cpda on PII.Id = cpda.ProgramInstanceItemId where ProgramInstanceId = ProgInst.id and Title like '%A1C%') is null then 0
+	(
+		select
+			case
+				--if no a1c assesment answer set to zero
+				when (
+					select 
+						max(value) 
+					from 
+						ProgramInstanceItem PII 
+						left outer join CPDataAnswers cpda on PII.Id = cpda.ProgramInstanceItemId 
+					where 
+						ProgramInstanceId = ProgInst.id 
+						and Title like '%A1C%'
+				) is null then 0
 		--otherwise pre enrollment form a1c - session a1c
 		else (
 				--casting start to dec
