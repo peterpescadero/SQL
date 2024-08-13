@@ -1,47 +1,65 @@
 --Member Management Report
 SELECT reg.PatientID,
-       reg.PolicyID	As 'Medicaid ID',
-	   cast(PEF.dateadded as date)                                           AS
-       'Referral Date',
-       PEF.sitecode                                            AS 'Location',
-       cast(ProgInst.startdate as DATE)                                      AS
-       'Program Start Date',
-       cast(ProgInst.enddate as date)                                        AS
-       'Program End Date',
-       --start sessions attended
-	   --number of sessions with answers minus session with attended = no
-	   (SELECT Count(DISTINCT scheduledateendtimeutc)
-        FROM   programinstanceitem PII
-               LEFT OUTER JOIN cpdataanswers cpda
-                            ON PII.id = cpda.programinstanceitemid
-        WHERE  programinstanceid = ProgInst.id
-               AND value IS NOT NULL) - (SELECT Count(*)
-                                         FROM   programinstanceitem PII
-                                                LEFT OUTER JOIN
-                                                cpdataanswers cpda
-                                                             ON
-       PII.id = cpda.programinstanceitemid
-                                         WHERE  programinstanceid = ProgInst.id
-                                                AND questionid = 37
-                                                AND value = 2) AS
-       'Sessions Attended',
-       (SELECT Max(DISTINCT scheduledateendtimeutc)
-        FROM   programinstanceitem PII
-               LEFT OUTER JOIN cpdataanswers cpda
-                            ON PII.id = cpda.programinstanceitemid
-        WHERE  programinstanceid = ProgInst.id
-               AND value IS NOT NULL
-               AND ( questionid = 37
-			   --1 is attendad
-                     AND value = 1 ))                          AS
-       'Last Interaction',
+	reg.PolicyID As 'Medicaid ID',
+	cast(PEF.dateadded as date) AS 'Referral Date',
+       	PEF.sitecode AS 'Location',
+       	cast(ProgInst.startdate as DATE) AS 'Program Start Date',
+       	cast(ProgInst.enddate as date) AS 'Program End Date',       	
+	--number of sessions with answers minus session with attended = no
+	(
+		SELECT 
+			Count(DISTINCT scheduledateendtimeutc)
+        	FROM   
+			programinstanceitem PII
+               		LEFT OUTER JOIN cpdataanswers cpda ON PII.id = cpda.programinstanceitemid
+       		 WHERE  
+			programinstanceid = ProgInst.id
+               		AND value IS NOT NULL
+	) 
+	- 
+	(	
+		SELECT 
+			Count(*)
+                FROM   
+			programinstanceitem PII
+                        LEFT OUTER JOIN cpdataanswers cpda ON PII.id = cpda.programinstanceitemid
+                WHERE  
+			programinstanceid = ProgInst.id
+                        AND questionid = 37
+                        AND value = 2
+	) AS 'Sessions Attended',
+       (
+		SELECT 
+			Max(DISTINCT scheduledateendtimeutc)
+        	FROM   
+			programinstanceitem PII
+               	LEFT OUTER JOIN 
+			cpdataanswers cpda ON PII.id = cpda.programinstanceitemid
+        	WHERE  
+			programinstanceid = ProgInst.id
+               		AND value IS NOT NULL
+               		AND ( 
+				questionid = 37
+			  	 --1 is attendad
+                    	 	AND value = 1 
+			)
+	) AS 'Last Interaction',
 	--start weight loss %
 	--((first weight-last weight)/first weight)*100
 	FLOOR(
 		(
 			(
 				CAST(
-					(select TOP 1 Value from ProgramInstanceItem PII left outer join CPDataAnswers cpda on PII.Id = cpda.ProgramInstanceItemId where ProgramInstanceId = ProgInst.id and QuestionId = 168 and Value is not null order by ScheduleDateEndTimeUtc asc) 
+					(
+						select 
+							TOP 1 Value 
+						from 
+							ProgramInstanceItem PII 
+							left outer join CPDataAnswers cpda on PII.Id = cpda.ProgramInstanceItemId 
+						where 
+							ProgramInstanceId = ProgInst.id 
+							and QuestionId = 168 
+							and Value is not null order by ScheduleDateEndTimeUtc asc) 
 					as INT
 					)
 				-
